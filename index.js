@@ -108,7 +108,7 @@ app.delete("/api/doctors/:id", (req, res) => {
 });
 
 app.get("/api/patients", (req, res) => {
-  const q = "select * from patient";
+  const q = "select * from patient limit 20";
   db.query(q, (err, rows) => {
     if (err) {
       res.send(err);
@@ -131,7 +131,7 @@ app.get("/api/patients/:id", (req, res) => {
 
 app.post("/api/patients", (req, res) => {
   const q =
-    "insert into patient (first_name, last_name, address, blood_group, contact_number, email) values (?, ?, ?, ?, ?, ?)";
+    "insert into patient (first_name, last_name, address, blood_group, contact_number, email) values (?, ?, ?, ?, ?, ?) ";
 
   const { first_name, last_name, address, blood_group, contact_number, email } =
     req.body;
@@ -184,6 +184,55 @@ app.post("/api/appointments", (req, res) => {
     "insert into appointment (patient_id, doctor_id, reason, date, time) values (?, ?, ?, ?, ?)";
   const { patient_id, doctor_id, reason, date, time } = req.body;
   db.query(q, [patient_id, doctor_id, reason, date, time], (err, rows) => {
+    if (err) {
+      res.send(err);
+    } else {
+      res.send("Success");
+    }
+  });
+});
+
+app.get("/api/appointment/:id", (req, res) => {
+  const q = `
+  select appointment.id, patient.first_name as patient_fname, patient.last_name as patient_lname, time, reason, status, patient.contact_number, doctor.first_name as doctor_fname, doctor.last_name as doctor_lname, observations, prescription, date, fees_charged 
+  from appointment 
+  inner join patient 
+  on patient.id = patient_id
+  inner join doctor 
+  on doctor.id = doctor_id
+  where appointment.id = ?`;
+  db.query(q, [req.params.id], (err, rows) => {
+    if (err) {
+      res.send(err);
+    } else {
+      res.send(rows);
+    }
+  });
+});
+
+app.put("/api/appointment/:id", (req, res) => {
+  const q = `
+  update appointment
+  set status = ?, fees_charged = ?, observations = ?, prescription = ? 
+  where id = ?
+  `;
+  const { status, fees_charged, observations, prescription } = req.body;
+  db.query(
+    q,
+    [status, fees_charged, observations, prescription, req.params.id],
+    (err, rows) => {
+      if (err) {
+        res.send(err);
+      } else {
+        res.send("Success");
+      }
+    }
+  );
+});
+
+app.delete("/api/appointment/:id", (req, res) => {
+  const q = "delete from appointment where id = ?";
+  db.query(q, [req.params.id], (err, rows) => {
     if (err) {
       res.send(err);
     } else {
