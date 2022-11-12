@@ -108,7 +108,7 @@ app.delete("/api/doctors/:id", (req, res) => {
 });
 
 app.get("/api/patients", (req, res) => {
-  const q = "select * from patient limit 20";
+  const q = "select * from patient";
   db.query(q, (err, rows) => {
     if (err) {
       res.send(err);
